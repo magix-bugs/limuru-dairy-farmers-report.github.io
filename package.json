@@ -1,0 +1,26 @@
+{
+  "name": "limuru-dairy-web-app",
+  "version": "1.0.0",
+  "description": "The repository has a web app that involves the limuru dairy farmers report generated from the quantities of milk a gfarmer delivers at milk collection points.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/magix-bugs/limuru-dairy-farmers-report.github.io.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/magix-bugs/limuru-dairy-farmers-report.github.io/issues"
+  },
+  "homepage": "https://github.com/magix-bugs/limuru-dairy-farmers-report.github.io#readme",
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "express": "^4.19.2",
+    "fs": "^0.0.1-security",
+    "multer": "^1.4.5-lts.1"
+  }
+}

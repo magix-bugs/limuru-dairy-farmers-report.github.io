@@ -1,0 +1,22 @@
+[build]
+  # Set the build command for your project
+  command = "npm run build"
+
+  # Set the directory to deploy (the output directory after building your project)
+  publish = "dist"
+
+[[redirects]]
+  # Redirect rules can be added here if needed
+  # For example, redirect all requests to the index.html file
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  # Set the directory where your Netlify Functions are located
+  directory = "functions"
+
+[build.environment]
+  # Set environment variables that your build process may need
+  # For example, if your application relies on an API key
+  

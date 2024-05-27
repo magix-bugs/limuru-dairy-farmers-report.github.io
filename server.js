@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const generateReportHandler = require('/functions/generate-report');
+const generateReportHandler = require('./functions/generate-report');
 
 app.use('./netlify/functions/generate-report', generateReportHandler);
 

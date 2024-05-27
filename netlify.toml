@@ -14,7 +14,7 @@
 
 [functions]
   # Set the directory where your Netlify Functions are located
-  directory = "netlify/functions"
+  directory = "/netlify/functions"
 
 [build.environment]
   # Set environment variables that your build process may need

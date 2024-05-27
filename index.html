@@ -202,7 +202,7 @@
                     formData.append('files', file);
                 });
 
-                const response = await fetch('./functions/generate-report', {
+                const response = await fetch('./netlify/functions/generate-report', {
                     method: 'POST',
                     body: formData
                 });

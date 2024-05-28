@@ -11,6 +11,10 @@
   from = "/*"
   to = "/index.html"
   status = 200
+[[redirects]]  
+  from = "/.netlify/functions/generate-report"
+  to = "/.netlify/functions/generate-report-handler"
+  status = 200
 
 [functions]
   # Set the directory where your Netlify Functions are located

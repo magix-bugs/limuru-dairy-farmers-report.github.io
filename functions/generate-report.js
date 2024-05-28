@@ -3,6 +3,7 @@ const multer = require('multer');
 const csvParser = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
+const { Readable } = require('stream'); // Import Readable from stream module
 
 const handler = async (event) => {
     // Create an Express app
@@ -39,9 +40,14 @@ const handler = async (event) => {
                     // Remove the temporary file after processing
                     fs.unlinkSync(tempFilePath);
 
-                    // If all files have been processed, send response
+                    // If all files have been processed, format and send response
                     if (allResults.length === req.files.length) {
-                        res.status(200).json({ message: 'Files uploaded and processed successfully', data: allResults });
+                        // Format report data as CSV content
+                        const csvContent = formatAsCSV(allResults);
+
+                        // Send CSV content as response
+                        res.header('Content-Type', 'text/csv');
+                        res.status(200).send(csvContent);
                     }
                 });
         });
@@ -55,5 +61,24 @@ const handler = async (event) => {
         console.log(`Server is running on port ${port}`);
     });
 };
+
+// Function to format report data as CSV content
+function formatAsCSV(allResults) {
+    let csvContent = '';
+
+    // Add CSV headers
+    const headers = Object.keys(allResults[0].data[0]).join(',');
+    csvContent += `${headers}\n`;
+
+    // Add data rows
+    allResults.forEach(result => {
+        result.data.forEach(row => {
+            const values = Object.values(row).join(',');
+            csvContent += `${values}\n`;
+        });
+    });
+
+    return csvContent;
+}
 
 module.exports = { handler };

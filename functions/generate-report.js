@@ -1,27 +1,45 @@
 const express = require('express');
-const multer  = require('multer');
+const multer = require('multer');
 const csvParser = require('csv-parser');
 const fs = require('fs');
+const path = require('path');
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer();
 
-app.post('/upload-csv', upload.single('csvFile'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
+app.post('/upload-csv', upload.array('csvFiles', 40), (req, res) => {
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: 'No files uploaded' });
     }
 
-    // Process the uploaded CSV file
-    const results = [];
-    fs.createReadStream(req.file.path)
-        .pipe(csvParser())
-        .on('data', (data) => results.push(data))
-        .on('end', () => {
-            // Perform file system operations or any other processing here
-            
-            // Respond with success message and parsed CSV data
-            res.status(200).json({ message: 'File uploaded and processed successfully', data: results });
-        });
+    // Array to hold results for all files
+    const allResults = [];
+
+    // Process each uploaded CSV file
+    req.files.forEach((file, index) => {
+        const results = [];
+        const tempFilePath = path.join('/tmp', file.originalname); // Use original filename for temporary file
+
+        // Move the uploaded file to the /tmp directory
+        fs.renameSync(file.path, tempFilePath);
+
+        // Parse the CSV from the temporary file
+        fs.createReadStream(tempFilePath)
+            .pipe(csvParser())
+            .on('data', (data) => results.push(data))
+            .on('end', () => {
+                // Add results for this file to the allResults array
+                allResults.push({ filename: file.originalname, data: results });
+
+                // Remove the temporary file after processing
+                fs.unlinkSync(tempFilePath);
+
+                // If all files have been processed, send response
+                if (allResults.length === req.files.length) {
+                    res.status(200).json({ message: 'Files uploaded and processed successfully', data: allResults });
+                }
+            });
+    });
 });
 
 app.listen(3000, () => {

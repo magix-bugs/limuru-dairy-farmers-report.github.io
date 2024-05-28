@@ -12,8 +12,8 @@
   to = "/index.html"
   status = 200
 [[redirects]]  
-  from = "/.netlify/functions/generate-report"
-  to = "/.netlify/functions/generate-report-handler"
+  from = "./netlify/functions/generate-report"
+  to = "./netlify/functions/generate-report-handler"
   status = 200
 
 [functions]

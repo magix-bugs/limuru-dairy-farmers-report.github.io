@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/magix-bugs/limuru-dairy-farmers-report.github.io#readme",
   "dependencies": {
+    "app": "^0.1.0",
     "async_hooks": "^1.0.0",
     "browserify": "^17.0.0",
     "buffer": "^6.0.3",
@@ -31,10 +32,12 @@
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "querystring-es3": "^0.2.1",
+    "serverless": "^4.0.24",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
     "url": "^0.11.3",
-    "util": "^0.12.5"
+    "util": "^0.12.5",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@babel/core": "^7.24.6",

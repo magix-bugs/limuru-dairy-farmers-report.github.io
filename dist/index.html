@@ -81,7 +81,7 @@
             align-items: center;
             z-index: 9999; /* Ensure it appears above other content */
             border-radius: 8px;
-        }</style><script defer="defer" src="main.bundle.js"></script><script defer="defer" src="function.bundle.js"></script></head><body><div id="app"></div><header><h1>Limuru Dairy Farmers Milk Report</h1></header><section id="file-upload-section" class="loading-container"><div class="loading-overlay" style="display: none;"><div class="loader"></div></div><h2>Upload CSV Files</h2><input type="file" id="file-input" accept=".csv" multiple="multiple"> <button id="upload-button" onclick="handleFileUpload()">Upload</button><div id="uploaded-files"></div></section><section id="about-section"><h2>About</h2><p>This application allows Limuru dairy farmers to upload their milk production, process the data, and generate a comprehensive report. Simply upload your files using the form above, and the system will process the data to provide you with an insightful report.</p></section><section id="report-section" class="loading-container"><div class="loading-overlay" style="display: none;"><div class="loader"></div></div><h2>Generated Report</h2><div id="report-content"><p>No report generated yet. Please upload CSV files to generate a report.</p></div><button id="download-report-button" onclick="downloadReport()" style="display: none;">Download Report</button> <button id="generate-report-button" onclick="generateReport()" style="display: none;">Generate Report</button></section><script>let uploadedFiles = [];
+        }</style><script defer="defer" src="main.bundle.js"></script></head><body><div id="app"></div><header><h1>Limuru Dairy Farmers Milk Report</h1></header><section id="file-upload-section" class="loading-container"><div class="loading-overlay" style="display: none;"><div class="loader"></div></div><h2>Upload CSV Files</h2><input type="file" id="file-input" accept=".csv" multiple="multiple"> <button id="upload-button" onclick="handleFileUpload()">Upload</button><div id="uploaded-files"></div></section><section id="about-section"><h2>About</h2><p>This application allows Limuru dairy farmers to upload their milk production, process the data, and generate a comprehensive report. Simply upload your files using the form above, and the system will process the data to provide you with an insightful report.</p></section><section id="report-section" class="loading-container"><div class="loading-overlay" style="display: none;"><div class="loader"></div></div><h2>Generated Report</h2><div id="report-content"><p>No report generated yet. Please upload CSV files to generate a report.</p></div><button id="download-report-button" onclick="downloadReport()" style="display: none;">Download Report</button> <button id="generate-report-button" onclick="generateReport()" style="display: none;">Generate Report</button></section><script>let uploadedFiles = [];
 
         async function handleFileUpload() {
             const input = document.getElementById('file-input');
@@ -141,60 +141,80 @@
                 document.getElementById('generate-report-button').style.display = 'none';
             }
         }
-
         async function generateReport() {
-            const reportSection = document.getElementById('report-section');
-            const loadingOverlay = reportSection.querySelector('.loading-overlay');
+    const reportSection = document.getElementById('report-section');
+    const loadingOverlay = reportSection.querySelector('.loading-overlay');
 
-            // Show loading spinner
-            loadingOverlay.style.display = 'flex';
+    // Show loading spinner
+    loadingOverlay.style.display = 'flex';
 
-            try {
-                const formData = new FormData();
-                uploadedFiles.forEach(file => {
-                    formData.append('files', file);
-                });
+    try {
+        const formData = new FormData();
+        uploadedFiles.forEach(file => {
+            formData.append('csvFiles', file); // Ensure the form data key matches the server's expectation
+        });
 
-                const response = await fetch('/.netlify/functions/generate-report', {
-                    method: 'POST',
-                    body: formData
-                });
+        const response = await fetch('https://limurudairydatahub.netlify.app/.netlify/functions/generate-report', {
+            method: 'POST',
+            body: formData
+        });
 
-                if (!response.ok) {
-                    throw new Error('Failed to generate report.');
-                }
-
-                // Once the report is generated, display the "Download Report" button
-                document.getElementById('download-report-button').style.display = 'block';
-            } catch (error) {
-                console.error('Error generating report:', error);
-                alert('Failed to generate report.');
-            } finally {
-                // Hide loading spinner
-                setTimeout(() => {
-                    loadingOverlay.style.display = 'none';
-                }, 5000);
-            }
+        if (!response.ok) {
+            throw new Error('Failed to generate report.');
         }
 
-        async function downloadReport() {
-            try {
-                const response = await fetch('/.netlify/functions/generate-report');
-                const reportData = await response.json();
+        // Process the response
+        const reportData = await response.json();
+        updateReportUI(reportData);
 
-                // Generate CSV content from the report data (replace this with your actual report data)
-                const csvContent = 'Sample CSV Content';
+        // Once the report is generated, display the "Download Report" button
+        document.getElementById('download-report-button').style.display = 'block';
+    } catch (error) {
+        console.error('Error generating report:', error);
+        alert('Failed to generate report.');
+    } finally {
+        // Hide loading spinner
+        loadingOverlay.style.display = 'none';
+    }
+}
+function updateReportUI(reportData) {
+    // Update the UI to display the generated report data
+    const reportContent = document.getElementById('report-content');
+    reportContent.innerHTML = ''; // Clear existing content
 
-                // Create a Blob object containing the CSV content
-                const blob = new Blob([csvContent], { type: 'text/csv' });
+    // Create HTML elements to display the report data
+    const reportList = document.createElement('ul');
+    reportData.forEach(report => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${report.filename}: ${JSON.stringify(report.data)}`;
+        reportList.appendChild(listItem);
+    });
 
-                // Create a temporary link element to trigger the download
-                const link = document.createElement('a');
-                link.href = window.URL.createObjectURL(blob);
-                link.download = 'report.csv';
-                link.click();
-            } catch (error) {
-                console.error('Error downloading report:', error);
-                alert('Failed to download report.');
-            }
-        }</script></body></html>
+    // Append the report list to the report content section
+    reportContent.appendChild(reportList);
+}
+
+async function downloadReport() {
+    try {
+        const response = await fetch('https://limurudairydatahub.netlify.app/.netlify/functions/generate-report');
+        
+        // Check if the response is OK (status code 200)
+        if (!response.ok) {
+            throw new Error('Failed to fetch report data.');
+        }
+
+        // Check Content-Type header
+        const contentType = response.headers.get('Content-Type');
+        if (!contentType || !contentType.includes('text/csv')) {
+            throw new Error('Invalid Content-Type. Expected text/csv.');
+        }
+
+        // Parse the response as text
+        const reportData = await response.text();
+
+        // Proceed with downloading the report...
+    } catch (error) {
+        console.error('Error downloading report:', error);
+        alert('Failed to download report.');
+    }
+}</script></body></html>

@@ -3,8 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: {
-    main: './server.js', // Entry point for your server-side code
-    function: './functions/generate-report.js', // Entry point for your additional JavaScript file
+    main:'./functions/generate-report.js' // Entry point for your additional JavaScript file
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

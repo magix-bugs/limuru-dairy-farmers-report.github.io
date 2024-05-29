@@ -4,13 +4,14 @@ const multer = require('multer');
 const csvParser = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const upload = multer({ dest: '/tmp' });
 
 app.post('/.netlify/functions/generate-report', upload.array('csvFiles', 40), async (req, res) => {
     console.log('Request received at /.netlify/functions/generate-report');
-    console.log('Received files:', req.files); // Log received files
+    console.log('Received files:', req.files);
 
     try {
         if (!req.files || req.files.length === 0) {
@@ -45,8 +46,14 @@ app.post('/.netlify/functions/generate-report', upload.array('csvFiles', 40), as
         }
 
         const csvContent = formatAsCSV(allResults);
-        res.header('Content-Type', 'text/csv');
-        res.status(200).send(csvContent);
+        const reportFilename = `report-${uuidv4()}.csv`;
+        const reportFilePath = path.join('/tmp', reportFilename);
+        
+        fs.writeFileSync(reportFilePath, csvContent);
+
+        // Send the file URL for downloading
+        const downloadUrl = `/tmp/${reportFilename}`;
+        res.status(200).json({ downloadUrl });
     } catch (error) {
         console.error('Error generating report:', error);
         res.status(500).json({ error: 'Failed to generate report' });
@@ -72,5 +79,21 @@ function formatAsCSV(allResults) {
 
     return csvContent;
 }
+
+// Endpoint to serve the CSV file
+app.get('/tmp/:filename', (req, res) => {
+    const { filename } = req.params;
+    const filePath = path.join('/tmp', filename);
+
+    res.download(filePath, (err) => {
+        if (err) {
+            console.error('Error serving file:', err);
+            res.status(500).send('Failed to download file');
+        } else {
+            // Optionally delete the file after sending it
+            fs.unlinkSync(filePath);
+        }
+    });
+});
 
 module.exports.handler = serverless(app);

@@ -203,21 +203,25 @@
         loadingOverlay.style.display = 'none';
     }
 }
-
 function updateReportUI(reportData) {
     const reportContent = document.getElementById('report-content');
     reportContent.innerHTML = '';
 
-    const reportList = document.createElement('ul');
-    reportData.forEach(report => {
-        const listItem = document.createElement('li');
-        listItem.textContent = `${report.filename}: ${JSON.stringify(report.data)}`;
-        reportList.appendChild(listItem);
-    });
+    // Check if reportData is an array
+    if (Array.isArray(reportData)) {
+        const reportList = document.createElement('ul');
+        reportData.forEach(report => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${report.filename}: ${JSON.stringify(report.data)}`;
+            reportList.appendChild(listItem);
+        });
 
-    reportContent.appendChild(reportList);
+        reportContent.appendChild(reportList);
+    } else {
+        // Handle the case where reportData is not an array
+        reportContent.textContent = 'Error: Invalid report data';
+    }
 }
-
     </script>
 </body>
 </html>

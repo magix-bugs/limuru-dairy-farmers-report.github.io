@@ -119,7 +119,7 @@
         <div id="report-content">
             <p>No report generated yet. Please upload CSV files to generate a report.</p>
         </div>
-        <button id="download-report-button" onclick="downloadReport()" style="display: none;">Download Report</button>
+        <button id="download-report-button" onclick="downloadReport()" style="display: block;">Download Report</button>
         <button id="generate-report-button" onclick="generateReport()" style="display: none;">Generate Report</button>
     </section>
 
@@ -202,18 +202,23 @@
         }
 
         async function updateReportUI(downloadUrl) {
-            try {
-                const response = await fetch(downloadUrl);
-                const csvContent = await response.text();
-                
-                // Display the CSV content in a new tab
-                const newWindow = window.open();
-                newWindow.document.write(`<pre>${csvContent}</pre>`);
-            } catch (error) {
-                console.error('Error updating report UI:', error);
-                alert('Failed to update report UI.');
-            }
-        }
+    try {
+        const response = await fetch(downloadUrl);
+        const csvContent = await response.text();
+        
+        // Display the CSV content in a new tab
+        const newWindow = window.open();
+        newWindow.document.write(`<pre>${csvContent}</pre>`);
+
+        // Show the download button
+        const downloadButton = document.getElementById('download-report-button');
+        downloadButton.style.display = 'block';
+    } catch (error) {
+        console.error('Error updating report UI:', error);
+        alert('Failed to update report UI.');
+    }
+}
+
     </script>
 </body>
 </html>

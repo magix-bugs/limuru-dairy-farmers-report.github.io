@@ -37,7 +37,7 @@ const generateReport = async (files) => {
                     results.push(data);
 
                     // Check the third column value
-                    const columnValue = Object.values(data)[2];
+                    const columnValue = Object.values(data)[3];
                     if (routes.includes(columnValue)) {
                         newFilename = `${columnValue}-${uuidv4()}.csv`;
                     }

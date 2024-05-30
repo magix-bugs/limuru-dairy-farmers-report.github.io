@@ -111,22 +111,29 @@ app.post('/.netlify/functions/generate-report', upload.array('csvFiles', 40), as
     }
 });
 
-// Serve the CSV file
+/// Serve the CSV file
 app.get('/tmp/:filename', (req, res) => {
     const { filename } = req.params;
-    const filePath = path.join('/tmp', filename);
+    const filePath = path.join('/tmp/', filename);
 
     console.log(`Request to download file: ${filePath}`);
 
-    res.download(filePath, (err) => {
-        if (err) {
-            console.error('Error serving file:', err);
-            res.status(500).send('Failed to download file');
-        } else {
-            // Delete the file after sending it
-            console.log(`File sent successfully, deleting: ${filePath}`);
-            fs.unlinkSync(filePath);
-        }
+    // Set appropriate response headers
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    res.setHeader('Content-Type', 'text/csv'); // Adjust content type if needed
+
+    // Stream the file to the response
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.on('error', (error) => {
+        console.error('Error reading file:', error);
+        res.status(500).send('Failed to read file');
+    });
+    fileStream.pipe(res);
+
+    // Optionally, delete the file after sending it
+    fileStream.on('close', () => {
+        console.log(`File sent successfully, deleting: ${filePath}`);
+        fs.unlinkSync(filePath);
     });
 });
 

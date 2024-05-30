@@ -132,8 +132,12 @@
             const newFiles = Array.from(input.files);
             const fileList = document.getElementById('uploaded-files');
 
-            // Add new files to the uploaded files array
-            uploadedFiles.push(...newFiles);
+            // Filter out duplicates
+            newFiles.forEach(file => {
+                if (!uploadedFiles.some(f => f.name === file.name)) {
+                    uploadedFiles.push(file);
+                }
+            });
 
             // Display all uploaded files
             fileList.textContent = '';
@@ -153,6 +157,9 @@
 
             // Display "Generate Report" button when files are uploaded
             document.getElementById('generate-report-button').style.display = uploadedFiles.length > 0 ? 'block' : 'none';
+
+            // Clear file input
+            input.value = '';
         }
 
         function removeFile(listItem, file) {
@@ -225,4 +232,3 @@
     </script>
 </body>
 </html>
-

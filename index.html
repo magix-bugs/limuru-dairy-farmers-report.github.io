@@ -119,12 +119,13 @@
         <div id="report-content">
             <p>No report generated yet. Please upload CSV files to generate a report.</p>
         </div>
-        <button id="download-report-button" onclick="downloadReport()" style="display: block;">Download Report</button>
+        <button id="download-report-button" onclick="downloadReport()" style="display: none;">Download Report</button>
         <button id="generate-report-button" onclick="generateReport()" style="display: none;">Generate Report</button>
     </section>
 
     <script>
         let uploadedFiles = [];
+        let downloadUrl = '';
 
         function handleFileUpload() {
             const input = document.getElementById('file-input');
@@ -164,6 +165,7 @@
             // Hide "Generate Report" button if no files are left
             document.getElementById('generate-report-button').style.display = uploadedFiles.length > 0 ? 'block' : 'none';
         }
+
         async function generateReport() {
             const reportSection = document.getElementById('report-section');
             const loadingOverlay = reportSection.querySelector('.loading-overlay');
@@ -201,24 +203,26 @@
             }
         }
 
-        async function updateReportUI(downloadUrl) {
-    try {
-        const response = await fetch(downloadUrl);
-        const csvContent = await response.text();
-        
-        // Display the CSV content in a new tab
-        const newWindow = window.open();
-        newWindow.document.write(`<pre>${csvContent}</pre>`);
+        function updateReportUI(url) {
+            downloadUrl = url;
+            
+            // Show a message in the report content area
+            const reportContent = document.getElementById('report-content');
+            reportContent.innerHTML = '<p>Report generated successfully. You can download it using the button below.</p>';
 
-        // Show the download button
-        const downloadButton = document.getElementById('download-report-button');
-        downloadButton.style.display = 'block';
-    } catch (error) {
-        console.error('Error updating report UI:', error);
-        alert('Failed to update report UI.');
-    }
-}
+            // Show the download button
+            const downloadButton = document.getElementById('download-report-button');
+            downloadButton.style.display = 'block';
+        }
 
+        function downloadReport() {
+            if (downloadUrl) {
+                window.location.href = downloadUrl;
+            } else {
+                alert('No report available for download.');
+            }
+        }
     </script>
 </body>
 </html>
+

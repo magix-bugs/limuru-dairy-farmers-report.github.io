@@ -9,6 +9,14 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 const upload = multer({ dest: '/tmp' });
 
+const routes = [
+    'R001', 'R002', 'R003', 'R004', 'R005', 'R006', 'R007', 'R008', 'R009', 'R010',
+    'R011', 'R012', 'R013', 'R014', 'R015', 'R016', 'R017', 'R018', 'R019', 'R020',
+    'R021', 'R022', 'R023', 'R024', 'R025', 'R026', 'R027', 'R028', 'R030', 'R031',
+    'R032', 'R033', 'R033A', 'R034', 'R035', 'R036', 'R037', 'R038', 'R039', 'R040',
+    'R041', 'R042', 'Zone001'
+];
+
 // Function to generate the report
 const generateReport = async (files) => {
     const allResults = [];
@@ -16,6 +24,7 @@ const generateReport = async (files) => {
     for (const file of files) {
         const results = [];
         const tempFilePath = path.join('/tmp', file.originalname);
+        let newFilename = file.originalname;
 
         console.log(`Processing file: ${file.originalname}`);
 
@@ -24,10 +33,21 @@ const generateReport = async (files) => {
         await new Promise((resolve, reject) => {
             fs.createReadStream(tempFilePath)
                 .pipe(csvParser())
-                .on('data', (data) => results.push(data))
+                .on('data', (data) => {
+                    results.push(data);
+
+                    // Check the third column value
+                    const columnValue = Object.values(data)[2];
+                    if (routes.includes(columnValue)) {
+                        newFilename = `${columnValue}-${uuidv4()}.csv`;
+                    }
+                })
                 .on('end', () => {
-                    allResults.push({ filename: file.originalname, data: results });
-                    fs.unlinkSync(tempFilePath);
+                    if (newFilename !== file.originalname) {
+                        const newFilePath = path.join('/tmp', newFilename);
+                        fs.renameSync(tempFilePath, newFilePath);
+                    }
+                    allResults.push({ filename: newFilename, data: results });
                     resolve();
                 })
                 .on('error', (error) => {
@@ -93,6 +113,7 @@ app.post('/.netlify/functions/generate-report', upload.array('csvFiles', 40), as
 app.get('/tmp/:filename', (req, res) => {
     const { filename } = req.params;
     const filePath = path.join('/tmp', filename);
+
 
     res.download(filePath, (err) => {
         if (err) {

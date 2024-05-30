@@ -223,12 +223,40 @@
         }
 
         function downloadReport() {
-            if (downloadUrl) {
-                window.location.href = downloadUrl;
-            } else {
-                alert('No report available for download.');
-            }
-        }
+    if (downloadUrl) {
+        // Make a GET request to the server to download the report
+        fetch(downloadUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to download report');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Create a temporary URL for the blob
+                const url = window.URL.createObjectURL(blob);
+                // Create a link element
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'report.csv';
+                // Append the link to the body
+                document.body.appendChild(a);
+                // Trigger the click event on the link
+                a.click();
+                // Remove the link from the body
+                document.body.removeChild(a);
+                // Revoke the URL to release the blob
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                console.error('Error downloading report:', error);
+                alert('Failed to download report');
+            });
+    } else {
+        alert('No report available for download.');
+    }
+}
+
     </script>
 </body>
 </html>

@@ -37,7 +37,7 @@ const generateReport = async (files) => {
                     results.push(data);
 
                     // Check the third column value
-                    const columnValue = Object.values(data)[2];
+                    const columnValue = Object.values(data)[3];
                     if (routes.includes(columnValue)) {
                         newFilename = `${columnValue}-${uuidv4()}.csv`;
                     }
@@ -87,25 +87,21 @@ const formatAsCSV = (allResults) => {
 app.post('/.netlify/functions/generate-report', upload.array('csvFiles', 40), async (req, res) => {
     console.log('Request received at /.netlify/functions/generate-report');
     console.log('Received files:', req.files);
-
     try {
         if (!req.files || req.files.length === 0) {
-            console.log('No files uploaded');
             return res.status(400).json({ error: 'No files uploaded' });
         }
 
         const allResults = await generateReport(req.files);
-        const downloadUrls = [];
+        const csvContent = formatAsCSV(allResults);
 
-        for (const result of allResults) {
-            const csvContent = formatAsCSV([result]);
-            const reportFilename = result.filename;
-            const reportFilePath = path.join('/tmp', reportFilename);
-            
-            fs.writeFileSync(reportFilePath, csvContent);
-            downloadUrls.push(`/tmp/${reportFilename}`);
-        }
+        const reportFilename = `report-${uuidv4()}.csv`;
+        const reportFilePath = path.join('/tmp', reportFilename);
+        
+        fs.writeFileSync(reportFilePath, csvContent);
 
+        const downloadUrls = allResults.map(result => `/tmp/${result.filename}`);
+   
         res.status(200).json({ downloadUrls });
     } catch (error) {
         console.error('Error generating report:', error);

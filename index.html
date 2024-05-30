@@ -125,7 +125,7 @@
 
     <script>
         let uploadedFiles = [];
-        let downloadUrl = '';
+        let downloadUrls = [];
 
         function handleFileUpload() {
             const input = document.getElementById('file-input');
@@ -195,12 +195,11 @@
 
                 const result = await response.json();
 
-                // Check if the result is a valid URL
-                if (typeof result.downloadUrl === 'string') {
-                    // Update the UI with the report data
-                    updateReportUI(result.downloadUrl);
+                if (Array.isArray(result.downloadUrls)) {
+                    downloadUrls = result.downloadUrls;
+                    updateReportUI(downloadUrls);
                 } else {
-                    throw new Error('Invalid report URL');
+                    throw new Error('Invalid report URLs');
                 }
             } catch (error) {
                 console.error('Error generating report:', error);
@@ -210,53 +209,42 @@
             }
         }
 
-        function updateReportUI(url) {
-            downloadUrl = url;
-            
-            // Show a message in the report content area
+        function updateReportUI(urls) {
             const reportContent = document.getElementById('report-content');
-            reportContent.innerHTML = '<p>Report generated successfully. You can download it using the button below.</p>';
+            reportContent.innerHTML = '<p>Reports generated successfully. You can download them using the buttons below.</p>';
 
-            // Show the download button
-            const downloadButton = document.getElementById('download-report-button');
-            downloadButton.style.display = 'block';
+            const downloadButtonsContainer = document.createElement('div');
+            urls.forEach((url, index) => {
+                const button = document.createElement('button');
+                button.textContent = `Download Report ${index + 1}`;
+                button.onclick = () => downloadReport(url);
+                downloadButtonsContainer.appendChild(button);
+            });
+
+            reportContent.appendChild(downloadButtonsContainer);
         }
 
-        function downloadReport() {
-    if (downloadUrl) {
-        // Make a GET request to the server to download the report
-        fetch(downloadUrl)
-            .then(response => {
+        async function downloadReport(url) {
+            try {
+                const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error('Failed to download report');
                 }
-                return response.blob();
-            })
-            .then(blob => {
-                // Create a temporary URL for the blob
-                const url = window.URL.createObjectURL(blob);
-                // Create a link element
+
+                const blob = await response.blob();
+                const tempUrl = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = 'report.csv';
-                // Append the link to the body
+                a.href = tempUrl;
+                a.download = url.split('/').pop();
                 document.body.appendChild(a);
-                // Trigger the click event on the link
                 a.click();
-                // Remove the link from the body
                 document.body.removeChild(a);
-                // Revoke the URL to release the blob
-                window.URL.revokeObjectURL(url);
-            })
-            .catch(error => {
+                window.URL.revokeObjectURL(tempUrl);
+            } catch (error) {
                 console.error('Error downloading report:', error);
                 alert('Failed to download report');
-            });
-    } else {
-        alert('No report available for download.');
-    }
-}
-
+            }
+        }
     </script>
 </body>
 </html>

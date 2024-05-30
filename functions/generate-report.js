@@ -37,7 +37,7 @@ const generateReport = async (files) => {
                     results.push(data);
 
                     // Check the third column value
-                    const columnValue = Object.values(data)[3];
+                    const columnValue = Object.values(data)[2];
                     if (routes.includes(columnValue)) {
                         newFilename = `${columnValue}-${uuidv4()}.csv`;
                     }
@@ -95,46 +95,53 @@ app.post('/.netlify/functions/generate-report', upload.array('csvFiles', 40), as
         }
 
         const allResults = await generateReport(req.files);
-        const csvContent = formatAsCSV(allResults);
+        const downloadUrls = [];
 
-        const reportFilename = `report-${uuidv4()}.csv`;
-        const reportFilePath = path.join('/tmp', reportFilename);
-        
-        fs.writeFileSync(reportFilePath, csvContent);
+        for (const result of allResults) {
+            const csvContent = formatAsCSV([result]);
+            const reportFilename = result.filename;
+            const reportFilePath = path.join('/tmp', reportFilename);
+            
+            fs.writeFileSync(reportFilePath, csvContent);
+            downloadUrls.push(`/tmp/${reportFilename}`);
+        }
 
-        // Send the file URL for downloading
-        const downloadUrl = `/tmp/${reportFilename}`;
-        res.status(200).json({ downloadUrl });
+        res.status(200).json({ downloadUrls });
     } catch (error) {
         console.error('Error generating report:', error);
         res.status(500).json({ error: 'Failed to generate report' });
     }
 });
 
-/// Serve the CSV file
+// Serve the CSV file
 app.get('/tmp/:filename', (req, res) => {
     const { filename } = req.params;
     const filePath = path.join('/tmp/', filename);
 
     console.log(`Request to download file: ${filePath}`);
 
-    // Set appropriate response headers
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-    res.setHeader('Content-Type', 'text/csv'); // Adjust content type if needed
+    // Check if the file exists
+    if (fs.existsSync(filePath)) {
+        // Set appropriate response headers
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+        res.setHeader('Content-Type', 'text/csv'); // Adjust content type if needed
 
-    // Stream the file to the response
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.on('error', (error) => {
-        console.error('Error reading file:', error);
-        res.status(500).send('Failed to read file');
-    });
-    fileStream.pipe(res);
+        // Stream the file to the response
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.on('error', (error) => {
+            console.error('Error reading file:', error);
+            res.status(500).send('Failed to read file');
+        });
+        fileStream.pipe(res);
 
-    // Optionally, delete the file after sending it
-    fileStream.on('close', () => {
-        console.log(`File sent successfully, deleting: ${filePath}`);
-        fs.unlinkSync(filePath);
-    });
+        // Optionally, delete the file after sending it
+        fileStream.on('close', () => {
+            console.log(`File sent successfully, deleting: ${filePath}`);
+            fs.unlinkSync(filePath);
+        });
+    } else {
+        res.status(404).send('File not found');
+    }
 });
 
 module.exports.handler = serverless(app);

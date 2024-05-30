@@ -46,6 +46,8 @@ const generateReport = async (files) => {
                     if (newFilename !== file.originalname) {
                         const newFilePath = path.join('/tmp', newFilename);
                         fs.renameSync(tempFilePath, newFilePath);
+                    } else {
+                        newFilename = file.originalname;
                     }
                     allResults.push({ filename: newFilename, data: results });
                     resolve();
@@ -114,13 +116,15 @@ app.get('/tmp/:filename', (req, res) => {
     const { filename } = req.params;
     const filePath = path.join('/tmp', filename);
 
+    console.log(`Request to download file: ${filePath}`);
 
     res.download(filePath, (err) => {
         if (err) {
             console.error('Error serving file:', err);
             res.status(500).send('Failed to download file');
         } else {
-            // Optionally delete the file after sending it
+            // Delete the file after sending it
+            console.log(`File sent successfully, deleting: ${filePath}`);
             fs.unlinkSync(filePath);
         }
     });

@@ -11,6 +11,9 @@
   from = "/*"
   to = "/index.html"
   status = 200
+[[redirects]]
+  from = "/index.html"
+  to="/report.html"
 [[redirects]]  
   from = ".netlify/functions/generate-report"
   to = ".netlify/functions/generate-report"

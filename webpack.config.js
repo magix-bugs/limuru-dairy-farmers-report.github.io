@@ -48,5 +48,5 @@ module.exports = {
       "zlib": require.resolve("browserify-zlib")
     }
   },
-  //target: 'node' // Set webpack target to 'node'
+  target: 'node' // Set webpack target to 'node'
 };

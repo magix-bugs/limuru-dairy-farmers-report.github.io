@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   entry: {
     main:'./functions/generate-report.js', // Entry point for your additional JavaScript file
-    report:'report-scripts.js',
+    report:'./report-scripts.js',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -61,7 +61,10 @@ module.exports = {
       "http": require.resolve("stream-http"),
       "querystring": require.resolve("querystring-es3"),
       "vm": require.resolve("vm-browserify"),
-      "zlib": require.resolve("browserify-zlib")
+      "zlib": require.resolve("browserify-zlib"),
+      "style-loader": require.resolve("style-loader"),
+      "css-loader": require.resolve("css-loader"),
+      "html-loader": require.resolve("html-loader"),
     }
   },
   target: 'node' // Set webpack target to 'node'

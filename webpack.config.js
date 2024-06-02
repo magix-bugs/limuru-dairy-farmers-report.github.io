@@ -3,11 +3,17 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: {
-    main:'./functions/generate-report.js' // Entry point for your additional JavaScript file
+    main:'./functions/generate-report.js', // Entry point for your additional JavaScript file
+    report:'report-scripts.js',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].bundle.js', // Use [name] placeholder to output files with different names
+  },
+  
+  output:{
+    path: path.resolve(__dirname,'dist'),
+    filename: '[name].bundle.js',
   },
   module: {
     rules: [
@@ -21,16 +27,26 @@ module.exports = {
           },
         },
       },
+      {
+        test: /\.css$/, //process css files
+        use: ['style-loader','css-loader']
+      },
+      {
+        test:/\.html$/, //process HTML files
+        use:'html-loader',
+      }
     ],
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: './index.html', // Path to your HTML template file
       filename: 'index.html', // Name of the output HTML file
+      chunks:['main'], // Include main javascript file
     }),
     new HtmlWebpackPlugin({
       template: './report.html',
-      filename: 'report.html'
+      filename: 'report.html',
+      chunks:['report'], // Include report javascript file
     }),
   ],
   resolve: {

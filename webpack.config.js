@@ -28,6 +28,10 @@ module.exports = {
       template: './index.html', // Path to your HTML template file
       filename: 'index.html', // Name of the output HTML file
     }),
+    new HtmlWebpackPlugin({
+      template: './report.html',
+      filename: 'report.html'
+    }),
   ],
   resolve: {
     fallback: {
@@ -44,5 +48,5 @@ module.exports = {
       "zlib": require.resolve("browserify-zlib")
     }
   },
-  target: 'node' // Set webpack target to 'node'
+  //target: 'node' // Set webpack target to 'node'
 };

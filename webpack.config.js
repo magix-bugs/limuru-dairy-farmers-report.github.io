@@ -4,7 +4,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   entry: {
     main:'./functions/generate-report.js', // Entry point for your additional JavaScript file
-    report:'./report-scripts.js',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -27,28 +26,16 @@ module.exports = {
           },
         },
       },
-      {
-        test: /\.css$/, //process css files
-        use: ['style-loader','css-loader']
-      },
-      {
-        test:/\.html$/, //process HTML files
-        use:'html-loader',
-      }
     ],
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: './index.html', // Path to your HTML template file
       filename: 'index.html', // Name of the output HTML file
-      chunks:['main'], // Include main javascript file
-      inject: 'body',
-    }),
+          }),
     new HtmlWebpackPlugin({
       template: './report.html',
       filename: 'report.html',
-      chunks:['report'], // Include report javascript file
-      inject: 'body',
     }),
   ],
   resolve: {
@@ -64,10 +51,7 @@ module.exports = {
       "querystring": require.resolve("querystring-es3"),
       "vm": require.resolve("vm-browserify"),
       "zlib": require.resolve("browserify-zlib"),
-      "style-loader": require.resolve("style-loader"),
-      "css-loader": require.resolve("css-loader"),
-      "html-loader": require.resolve("html-loader"),
-    }
+          }
   },
   target: 'node' // Set webpack target to 'node'
 };

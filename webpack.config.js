@@ -42,11 +42,13 @@ module.exports = {
       template: './index.html', // Path to your HTML template file
       filename: 'index.html', // Name of the output HTML file
       chunks:['main'], // Include main javascript file
+      inject: 'body',
     }),
     new HtmlWebpackPlugin({
       template: './report.html',
       filename: 'report.html',
       chunks:['report'], // Include report javascript file
+      inject: 'body',
     }),
   ],
   resolve: {

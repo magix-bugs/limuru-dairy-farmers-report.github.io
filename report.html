@@ -11,12 +11,14 @@
       padding: 0;
       background-color: #f4f4f4;
     }
+
     header {
       background-color: #4CAF50;
       color: white;
       padding: 1em 0;
       text-align: center;
     }
+
     section {
       padding: 2em;
       margin: 1em;
@@ -24,30 +26,36 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
+
     #report-container {
       display: flex;
       flex-direction: column;
       gap: 1em;
     }
+
     .report-item {
       background-color: #fff;
       border: 1px solid #ddd;
       border-radius: 4px;
       padding: 1em;
     }
+
     .report-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
     }
+
     .report-header:hover {
       background-color: #f0f0f0;
     }
+
     .report-dropdown {
       display: none;
       padding-top: 1em;
     }
+
     .download-button {
       padding: 0.5em 1em;
       background-color: #4CAF50;
@@ -57,9 +65,11 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
+
     .download-button:hover {
       background-color: #45a049;
     }
+
     .loader {
       border: 4px solid #f3f3f3;
       border-top: 4px solid #3498db;
@@ -68,13 +78,16 @@
       height: 30px;
       animation: spin 2s linear infinite;
     }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
     .loading-container {
       position: relative;
     }
+
     .loading-overlay {
       position: absolute;
       top: 0;
@@ -89,7 +102,7 @@
       border-radius: 8px;
       display: none; /* Default to hidden */
     }
-  </style>  
+  </style>
 </head>
 <body>
   <header>
@@ -103,44 +116,67 @@
     <div id="report-container"></div>
   </section>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const reportData = JSON.parse(decodeURIComponent(urlParams.get('reports')));
-    
+    document.addEventListener('DOMContentLoaded', async () => {
       const reportContainer = document.getElementById('report-container');
       const loadingOverlay = document.getElementById('loading-overlay');
-    
-      reportData.forEach((report, index) => {
-        const reportItem = createReportItem(report, index);
-        reportContainer.appendChild(reportItem);
-      });
-    
+
+      try {
+        showLoadingOverlay();
+        const response = await fetch('/.netlify/functions/reports');
+        const reportData = await response.json();
+        
+        reportData.forEach((report, index) => {
+          const reportItem = createReportItem(report, index);
+          reportContainer.appendChild(reportItem);
+        });
+      } catch (error) {
+        console.error('Error fetching report data:', error);
+      } finally {
+        hideLoadingOverlay();
+      }
+
       function createReportItem(report, index) {
         const reportItem = document.createElement('div');
         reportItem.className = 'report-item';
-    
+
         const reportHeader = document.createElement('div');
         reportHeader.className = 'report-header';
-        reportHeader.textContent = `Report ${index + 1}`;
+        reportHeader.textContent = report.title;
         reportHeader.addEventListener('click', () => toggleDropdown(reportDropdown));
-    
+
         const reportDropdown = document.createElement('div');
         reportDropdown.className = 'report-dropdown';
-    
-        report.urls.forEach((url, urlIndex) => {
-          const button = createDownloadButton(url, urlIndex);
-          reportDropdown.appendChild(button);
+
+        const categories = Object.keys(report.categories);
+        categories.forEach(category => {
+          const categoryContainer = document.createElement('div');
+          categoryContainer.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+          categoryContainer.style.fontWeight = 'bold';
+          categoryContainer.style.marginTop = '10px';
+
+          const categoryButtons = document.createElement('div');
+          categoryButtons.style.display = 'flex';
+          categoryButtons.style.flexDirection = 'column';
+          categoryButtons.style.gap = '5px';
+
+          report.categories[category].forEach((url, urlIndex) => {
+            const button = createDownloadButton(url, `${category.charAt(0).toUpperCase() + category.slice(1)} File ${urlIndex + 1}`);
+            categoryButtons.appendChild(button);
+          });
+
+          reportDropdown.appendChild(categoryContainer);
+          reportDropdown.appendChild(categoryButtons);
         });
-    
+
         reportItem.appendChild(reportHeader);
         reportItem.appendChild(reportDropdown);
-    
+
         return reportItem;
       }
-    
-      function createDownloadButton(url, index) {
+
+      function createDownloadButton(url, text) {
         const button = document.createElement('button');
-        button.textContent = `Download File ${index + 1}`;
+        button.textContent = text;
         button.className = 'download-button';
         button.addEventListener('click', (event) => {
           event.stopPropagation();
@@ -148,16 +184,15 @@
         });
         return button;
       }
-    
+
       async function downloadReport(url) {
         try {
           showLoadingOverlay();
-    
           const response = await fetch(url);
           if (!response.ok) {
             throw new Error('Failed to download report');
           }
-    
+
           const blob = await response.blob();
           const tempUrl = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -174,15 +209,15 @@
           hideLoadingOverlay();
         }
       }
-    
+
       function toggleDropdown(dropdown) {
         dropdown.style.display = dropdown.style.display === 'none' || dropdown.style.display === '' ? 'block' : 'none';
       }
-    
+
       function showLoadingOverlay() {
         loadingOverlay.style.display = 'flex';
       }
-    
+
       function hideLoadingOverlay() {
         loadingOverlay.style.display = 'none';
       }

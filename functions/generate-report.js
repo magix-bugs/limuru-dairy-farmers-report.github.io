@@ -140,4 +140,30 @@ app.get('/tmp/:filename', (req, res) => {
     }
 });
 
+// Additional route to get the report data
+const reportData = [
+  {
+    title: "Report 1",
+    categories: {
+      weekly: ["url1", "url2"],
+      monthly: ["url3", "url4"],
+      defaulters: ["url5", "url6"],
+      quarterly: ["url7", "url8"]
+    }
+  },
+  {
+    title: "Report 2",
+    categories: {
+      weekly: ["url9", "url10"],
+      monthly: ["url11", "url12"],
+      defaulters: ["url13", "url14"],
+      quarterly: ["url15", "url16"]
+    }
+  }
+];
+
+app.get('/reports', (req, res) => {
+  res.json(reportData);
+});
+
 module.exports.handler = serverless(app);

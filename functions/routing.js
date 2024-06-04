@@ -1,4 +1,3 @@
-// routing.js
 const fs = require('fs');
 const path = require('path');
 const csv = require('csv-parser');
@@ -13,19 +12,19 @@ const routes = [
 
 const determineRoutesFromFile = (filePath) => {
     return new Promise((resolve, reject) => {
-        const determinedRoutes = [];
+        const determinedRoutes = new Set();
 
         fs.createReadStream(filePath)
             .pipe(csv())
             .on('data', (row) => {
-                for (const value of Object.values(row)) {
+                Object.values(row).forEach(value => {
                     if (routes.includes(value)) {
-                        determinedRoutes.push(value);
+                        determinedRoutes.add(value);
                     }
-                }
+                });
             })
             .on('end', () => {
-                resolve(determinedRoutes);
+                resolve(Array.from(determinedRoutes));
             })
             .on('error', (err) => {
                 reject(err);
@@ -34,18 +33,18 @@ const determineRoutesFromFile = (filePath) => {
 };
 
 const determineRoutesFromFiles = async (filePaths) => {
-    const allRoutes = [];
+    const allRoutes = new Set();
 
     for (const filePath of filePaths) {
         try {
             const routesFromFile = await determineRoutesFromFile(filePath);
-            allRoutes.push(...routesFromFile);
+            routesFromFile.forEach(route => allRoutes.add(route));
         } catch (error) {
             console.error(`Error processing file ${filePath}:`, error);
         }
     }
 
-    return allRoutes;
+    return Array.from(allRoutes);
 };
 
 module.exports = { determineRoutesFromFile, determineRoutesFromFiles };

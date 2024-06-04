@@ -1,36 +1,21 @@
 // evaluation.js
 const fs = require('fs');
 const csv = require('csv-parser');
-const moment = require('moment'); // Ensure moment.js is installed: npm install moment
-const { categorizeFilesByPeriod } = require('./dateCategorization');
-
-const sumMilkQuantities = async (categorizedData, period, periodKey) => {
-    let totalQuantity = 0;
-
-    if (categorizedData[period] && categorizedData[period][periodKey]) {
-        const filePaths = categorizedData[period][periodKey];
-
-        for (const filePath of filePaths) {
-            totalQuantity += await calculateTotalFromCSV(filePath);
-        }
-    }
-
-    return totalQuantity;
-};
 
 const calculateTotalFromCSV = (filePath) => {
     return new Promise((resolve, reject) => {
-        let totalQuantity = 0;
+        let total = 0;
 
         fs.createReadStream(filePath)
             .pipe(csv())
             .on('data', (row) => {
-                for (const value of Object.values(row)) {
-                    totalQuantity += parseFloat(value) || 0;
+                // Assuming quantity is in a column named 'quantity'
+                if (row.quantity) {
+                    total += parseFloat(row.quantity);
                 }
             })
             .on('end', () => {
-                resolve(totalQuantity);
+                resolve(total);
             })
             .on('error', (err) => {
                 reject(err);
@@ -38,14 +23,22 @@ const calculateTotalFromCSV = (filePath) => {
     });
 };
 
-const differenceMilkQuantities = async (categorizedData, period, periodKey1, periodKey2) => {
+const evaluateQuantities = async (route, dir) => {
     try {
-        const quantity1 = await sumMilkQuantities(categorizedData, period, periodKey1);
-        const quantity2 = await sumMilkQuantities(categorizedData, period, periodKey2);
-        return quantity1 - quantity2;
+        const files = fs.readdirSync(dir).filter(file => file.includes(route));
+        const evaluations = {};
+
+        for (const file of files) {
+            const filePath = `${dir}/${file}`;
+            const total = await calculateTotalFromCSV(filePath);
+            evaluations[file] = total;
+        }
+
+        // Implement further evaluation logic if needed
+        return evaluations;
     } catch (error) {
-        throw new Error(`Error calculating difference: ${error.message}`);
+        console.error('Error evaluating quantities:', error);
     }
 };
 
-module.exports = { sumMilkQuantities, differenceMilkQuantities };
+module.exports = { evaluateQuantities };

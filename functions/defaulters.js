@@ -65,9 +65,9 @@ const findDefaulters = async (categorizedData, category, period, periodKeys) => 
 const findDefaultersByPeriod = async (filePaths, categories, period) => {
     try {
         const categorizedData = await categorizeFilesByPeriod(filePaths);
-        const sortedData = await sortFilesByCategories(filePaths, categories);
+        const sortedData = await sortFilesByCategories(categorizedData);
 
-        const periodKeys = Object.keys(categorizedData[period]).sort();
+        const periodKeys = Object.keys(categorizedData).sort();
 
         const allDefaulters = {};
         for (const category of Object.keys(categories)) {
@@ -81,4 +81,4 @@ const findDefaultersByPeriod = async (filePaths, categories, period) => {
     }
 };
 
-module.exports = { findDefaultersByPeriod };
+module.exports = { findDefaulters, findDefaultersByPeriod };

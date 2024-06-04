@@ -136,15 +136,19 @@
           actionsContainer.id = `actions-${route}`;
           actionsContainer.className = 'actions-container';
 
-          const sortButton = createActionButton('Sort', actions.sort);
-          const categorizeButton = createActionButton('Categorize', actions.categorize);
-          const evaluateButton = createActionButton('Evaluate', actions.evaluate);
-          const defaultersButton = createActionButton('Defaulters', actions.defaulters);
+          const sortButton = createActionButton('Sort', () => sortFiles(route));
+          const categorizeButton = createActionButton('Categorize', () => categorizeFiles(route));
+          const evaluateButton = createActionButton('Evaluate', () => evaluateFiles(route));
+          const defaultersButton = createActionButton('Defaulters', () => findDefaulters(route));
 
           actionsContainer.appendChild(sortButton);
           actionsContainer.appendChild(categorizeButton);
           actionsContainer.appendChild(evaluateButton);
           actionsContainer.appendChild(defaultersButton);
+
+          const reportDiv = document.createElement('div');
+          reportDiv.id = `report-${route}`;
+          actionsContainer.appendChild(reportDiv);
 
           routesContainer.appendChild(routeButton);
           routesContainer.appendChild(actionsContainer);
@@ -155,13 +159,13 @@
         hideLoadingOverlay();
       }
 
-      function createActionButton(text, url) {
+      function createActionButton(text, onClick) {
         const button = document.createElement('button');
         button.textContent = text;
         button.className = 'action-button';
         button.addEventListener('click', (event) => {
           event.stopPropagation();
-          window.location.href = url;
+          onClick();
         });
         return button;
       }
@@ -177,6 +181,35 @@
 
       function hideLoadingOverlay() {
         loadingOverlay.style.display = 'none';
+      }
+
+      async function sortFiles(route) {
+        const response = await fetch(`/.netlify/functions/sort/${route}`);
+        const result = await response.json();
+        displayReport(route, result.message, result.sortedFiles);
+      }
+
+      async function categorizeFiles(route) {
+        const response = await fetch(`/.netlify/functions/categorize/${route}`);
+        const result = await response.json();
+        displayReport(route, result.message, result.categorizedFiles);
+      }
+
+      async function evaluateFiles(route) {
+        const response = await fetch(`/.netlify/functions/evaluate/${route}`);
+        const result = await response.json();
+        displayReport(route, result.message, result.evaluations);
+      }
+
+      async function findDefaulters(route) {
+        const response = await fetch(`/.netlify/functions/defaulters/${route}`);
+        const result = await response.json();
+        displayReport(route, result.message, result.defaulters);
+      }
+
+      function displayReport(route, message, data) {
+        const reportDiv = document.getElementById(`report-${route}`);
+        reportDiv.innerHTML = `<p>${message}</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
       }
     });
   </script>

@@ -175,7 +175,7 @@
             uploadedFiles.forEach(file => formData.append('csvFiles', file));
 
             // Send the uploaded files to the server for report generation
-            fetch('/.netlify/functions/generate-report', {
+            fetch('/.netlify/functions/generate-report/upload', {
                 method: 'POST',
                 body: formData
             })

@@ -11,9 +11,9 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { categorizeFilesByPeriod } = require('./dateCategorization');
-const { sortFilesByCategories, categories } = require('./sorting');
+const { sortFilesFromMultiplePaths, sortFiles, categories } = require('./sorting');
 const { evaluateQuantities } = require('./evaluation');
-const { findDefaultersByPeriod } = require('./defaulters');
+const { findDefaulters, findDefaultersByPeriod } = require('./defaulters');
 const { determineRoutesFromFiles } = require('./routing');
 
 const app = express();
@@ -39,14 +39,35 @@ app.post('/upload', upload.array('files'), async (req, res) => {
       };
     });
 
-    // Clean up uploaded files
-    req.files.forEach(file => fs.unlinkSync(file.path));
-
     res.json({ routes: routeData });
   } catch (error) {
     console.error('Error processing files:', error);
     res.status(500).json({ error: 'Error processing files' });
   }
+});
+
+app.get('/sort/:route', async (req, res) => {
+  const route = req.params.route;
+  const sortedFiles = await sortFilesFromMultiplePaths([`${route}`]);
+  res.json({ message: `Files sorted for route ${route}`, sortedFiles });
+});
+
+app.get('/categorize/:route', (req, res) => {
+  const route = req.params.route;
+  const categorizedFiles = categorizeFilesByPeriod(route, './tmp');
+  res.json({ message: `Files categorized for route ${route}`, categorizedFiles });
+});
+
+app.get('/evaluate/:route', async (req, res) => {
+  const route = req.params.route;
+  const evaluations = await evaluateQuantities(route, './tmp');
+  res.json({ message: `Quantities evaluated for route ${route}`, evaluations });
+});
+
+app.get('/defaulters/:route', async (req, res) => {
+  const route = req.params.route;
+  const defaulters = await findDefaultersByPeriod(route, findDefaulters, categorizeFilesByPeriod, sortFilesFromMultiplePaths, './tmp');
+  res.json({ message: `Defaulters identified for route ${route}`, defaulters });
 });
 
 module.exports.handler = serverless(app);

@@ -15,10 +15,10 @@ const sortFiles = (filePath) => {
         fs.createReadStream(filePath)
             .pipe(csv())
             .on('data', (row) => {
-                for (const [key, values] of Object.entries(categories)) {
+                for (const [category, values] of Object.entries(categories)) {
                     for (const value of Object.values(row)) {
                         if (values.includes(value)) {
-                            sortedData[key].push(value);
+                            sortedData[category].push(value);
                         }
                     }
                 }
@@ -49,4 +49,4 @@ const sortFilesFromMultiplePaths = async (filePaths) => {
     return aggregatedData;
 };
 
-module.exports = { sortFiles, sortFilesFromMultiplePaths };
+module.exports = { sortFiles, sortFilesFromMultiplePaths, categories };

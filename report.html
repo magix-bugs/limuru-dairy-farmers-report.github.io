@@ -27,47 +27,44 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
-    #report-container {
+    #routesContainer {
       display: flex;
       flex-direction: column;
       gap: 1em;
     }
 
-    .report-item {
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 1em;
-    }
-
-    .report-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-    }
-
-    .report-header:hover {
-      background-color: #f0f0f0;
-    }
-
-    .report-dropdown {
-      display: none;
-      padding-top: 1em;
-    }
-
-    .download-button {
-      padding: 0.5em 1em;
+    .route-button {
       background-color: #4CAF50;
       color: white;
       border: none;
+      padding: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .route-button:hover {
+      background-color: #45a049;
+    }
+
+    .actions-container {
+      display: none;
+      flex-direction: column;
+      gap: 0.5em;
+      margin-top: 0.5em;
+    }
+
+    .action-button {
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      padding: 0.5em;
       border-radius: 4px;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
 
-    .download-button:hover {
-      background-color: #45a049;
+    .action-button:hover {
+      background-color: #ddd;
     }
 
     .loader {
@@ -113,105 +110,65 @@
     <div class="loading-overlay" id="loading-overlay">
       <div class="loader"></div>
     </div>
-    <div id="report-container"></div>
+    <div id="routesContainer"></div>
   </section>
+
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const reportContainer = document.getElementById('report-container');
+      const routesContainer = document.getElementById('routesContainer');
       const loadingOverlay = document.getElementById('loading-overlay');
 
       try {
         showLoadingOverlay();
-        const response = await fetch('/.netlify/functions/reports');
-        const reportData = await response.json();
-        
-        reportData.forEach((report, index) => {
-          const reportItem = createReportItem(report, index);
-          reportContainer.appendChild(reportItem);
+        const response = await fetch('/.netlify/functions/upload');
+        const data = await response.json();
+
+        data.routes.forEach(routeData => {
+          const route = routeData.route;
+          const actions = routeData.actions;
+
+          const routeButton = document.createElement('button');
+          routeButton.className = 'route-button';
+          routeButton.textContent = route;
+          routeButton.addEventListener('click', () => toggleActions(route));
+
+          const actionsContainer = document.createElement('div');
+          actionsContainer.id = `actions-${route}`;
+          actionsContainer.className = 'actions-container';
+
+          const sortButton = createActionButton('Sort', actions.sort);
+          const categorizeButton = createActionButton('Categorize', actions.categorize);
+          const evaluateButton = createActionButton('Evaluate', actions.evaluate);
+          const defaultersButton = createActionButton('Defaulters', actions.defaulters);
+
+          actionsContainer.appendChild(sortButton);
+          actionsContainer.appendChild(categorizeButton);
+          actionsContainer.appendChild(evaluateButton);
+          actionsContainer.appendChild(defaultersButton);
+
+          routesContainer.appendChild(routeButton);
+          routesContainer.appendChild(actionsContainer);
         });
       } catch (error) {
-        console.error('Error fetching report data:', error);
+        console.error('Error fetching route data:', error);
       } finally {
         hideLoadingOverlay();
       }
 
-      function createReportItem(report, index) {
-        const reportItem = document.createElement('div');
-        reportItem.className = 'report-item';
-
-        const reportHeader = document.createElement('div');
-        reportHeader.className = 'report-header';
-        reportHeader.textContent = report.title;
-        reportHeader.addEventListener('click', () => toggleDropdown(reportDropdown));
-
-        const reportDropdown = document.createElement('div');
-        reportDropdown.className = 'report-dropdown';
-
-        const categories = Object.keys(report.categories);
-        categories.forEach(category => {
-          const categoryContainer = document.createElement('div');
-          categoryContainer.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-          categoryContainer.style.fontWeight = 'bold';
-          categoryContainer.style.marginTop = '10px';
-
-          const categoryButtons = document.createElement('div');
-          categoryButtons.style.display = 'flex';
-          categoryButtons.style.flexDirection = 'column';
-          categoryButtons.style.gap = '5px';
-
-          report.categories[category].forEach((url, urlIndex) => {
-            const button = createDownloadButton(url, `${category.charAt(0).toUpperCase() + category.slice(1)} File ${urlIndex + 1}`);
-            categoryButtons.appendChild(button);
-          });
-
-          reportDropdown.appendChild(categoryContainer);
-          reportDropdown.appendChild(categoryButtons);
-        });
-
-        reportItem.appendChild(reportHeader);
-        reportItem.appendChild(reportDropdown);
-
-        return reportItem;
-      }
-
-      function createDownloadButton(url, text) {
+      function createActionButton(text, url) {
         const button = document.createElement('button');
         button.textContent = text;
-        button.className = 'download-button';
+        button.className = 'action-button';
         button.addEventListener('click', (event) => {
           event.stopPropagation();
-          downloadReport(url);
+          window.location.href = url;
         });
         return button;
       }
 
-      async function downloadReport(url) {
-        try {
-          showLoadingOverlay();
-          const response = await fetch(url);
-          if (!response.ok) {
-            throw new Error('Failed to download report');
-          }
-
-          const blob = await response.blob();
-          const tempUrl = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = tempUrl;
-          a.download = url.split('/').pop();
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(tempUrl);
-        } catch (error) {
-          console.error('Error downloading report:', error);
-          alert('Failed to download report');
-        } finally {
-          hideLoadingOverlay();
-        }
-      }
-
-      function toggleDropdown(dropdown) {
-        dropdown.style.display = dropdown.style.display === 'none' || dropdown.style.display === '' ? 'block' : 'none';
+      function toggleActions(route) {
+        const actionsContainer = document.getElementById(`actions-${route}`);
+        actionsContainer.style.display = actionsContainer.style.display === 'none' || !actionsContainer.style.display ? 'flex' : 'none';
       }
 
       function showLoadingOverlay() {

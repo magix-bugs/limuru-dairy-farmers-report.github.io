@@ -20,6 +20,7 @@ const app = express();
 const upload = multer({ dest: '/tmp' });
 
 app.post('/upload', upload.array('files'), async (req, res) => {
+  console.log('Files received:', req.files);
   try {
     const filePaths = req.files.map(file => file.path);
 

@@ -3,17 +3,18 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: {
-    main:'./functions/generate-report.js', // Entry point for your additional JavaScript file
+    generateReport:'./functions/generate-report.js', // Entry point for your additional JavaScript file
+    sorting:'./functions/sorting.js',
+    defaulters:'./functions/defaulters.js',
+    evaluation:'./functions/evaluation.js',
+    routing:'./functions/routing.js',
+    dateCategorization:'./functions/dateCategorization.js',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: '[name].bundle.js', // Use [name] placeholder to output files with different names
+    filename: '[name].js', // Use [name] placeholder to output files with different names
   },
   
-  output:{
-    path: path.resolve(__dirname,'dist'),
-    filename: '[name].bundle.js',
-  },
   module: {
     rules: [
       {

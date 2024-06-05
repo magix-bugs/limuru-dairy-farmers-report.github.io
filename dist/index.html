@@ -1,0 +1,179 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Limuru Dairy Farmers Milk Report</title><style>body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1em 0;
+            text-align: center;
+        }
+        section {
+            padding: 2em;
+            margin: 1em;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #file-upload-section, #about-section, #report-section {
+            margin-bottom: 2em;
+        }
+        h2 {
+            color: #333;
+        }
+        #uploaded-files {
+            margin-top: 1em;
+        }
+        .file-item {
+            margin-bottom: 0.5em;
+        }
+        .remove-button {
+            margin-left: 10px;
+            padding: 0.2em 0.5em;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .remove-button:hover {
+            background-color: #c0392b;
+        }
+        #upload-button {
+            display: inline-block;
+            padding: 0.5em 1em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #upload-button:hover {
+            background-color: #45a049;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-container {
+            position: relative;
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            border-radius: 8px;
+        }</style><script defer="defer" src="generateReport.js"></script><script defer="defer" src="sorting.js"></script><script defer="defer" src="defaulters.js"></script><script defer="defer" src="evaluation.js"></script><script defer="defer" src="routing.js"></script><script defer="defer" src="dateCategorization.js"></script></head><body><header><h1>Limuru Dairy Farmers Milk Report</h1></header><section id="file-upload-section" class="loading-container"><div class="loading-overlay" style="display: none;"><div class="loader"></div></div><h2>Upload CSV Files</h2><input type="file" id="file-input" accept=".csv" multiple="multiple"> <button id="upload-button" onclick="handleFileUpload()">Upload</button><div id="uploaded-files"></div><button id="generate-report-button" onclick="generateReport()" style="display: none;">Generate Report</button></section><section id="about-section"><h2>About</h2><p>This application allows Limuru dairy farmers to upload their milk production, process the data, and generate a comprehensive report. Simply upload your files using the form above, and the system will process the data to provide you with an insightful report.</p></section><script>let uploadedFiles = [];
+        const loadingOverlay = document.querySelector('.loading-overlay');
+        const generateReportButton = document.getElementById('generate-report-button');
+
+        function showLoadingOverlay() {
+            loadingOverlay.style.display = 'flex';
+        }
+
+        function hideLoadingOverlay() {
+            loadingOverlay.style.display = 'none';
+        }
+
+        function handleFileUpload() {
+            showLoadingOverlay(); // Show the loading spinner
+
+            const input = document.getElementById('file-input');
+            const newFiles = Array.from(input.files);
+            const fileList = document.getElementById('uploaded-files');
+
+            // Filter out duplicates
+            newFiles.forEach(file => {
+                if (!uploadedFiles.some(f => f.name === file.name)) {
+                    uploadedFiles.push(file);
+                }
+            });
+
+            // Display all uploaded files
+            fileList.textContent = '';
+            uploadedFiles.forEach(file => {
+                const listItem = document.createElement('div');
+                listItem.textContent = file.name;
+                listItem.className = 'file-item';
+
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.className = 'remove-button';
+                removeButton.onclick = () => removeFile(listItem, file);
+                listItem.appendChild(removeButton);
+
+                fileList.appendChild(listItem);
+            });
+
+            // Clear file input
+            input.value = '';
+
+            hideLoadingOverlay(); // Hide the loading spinner
+
+            // Show "Generate Report" button if files are uploaded
+            generateReportButton.style.display = uploadedFiles.length > 0 ? 'inline-block' : 'none';
+        }
+
+        function removeFile(listItem, file) {
+            const fileList = document.getElementById('uploaded-files');
+            fileList.removeChild(listItem);
+
+            // Remove file from the uploaded files array
+            uploadedFiles = uploadedFiles.filter(f => f !== file);
+
+            // Hide "Generate Report" button if no files are left
+            generateReportButton.style.display = uploadedFiles.length > 0 ? 'inline-block' : 'none';
+        }
+
+        function generateReport() {
+            showLoadingOverlay(); // Show the loading spinner
+
+            const formData = new FormData();
+            uploadedFiles.forEach(file => formData.append('files', file));
+
+            // Send the uploaded files to the server for report generation
+            fetch('https://limurudairydatahub.netlify.app/.netlify/functions/generate-report', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                hideLoadingOverlay(); // Hide the loading spinner
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate report.');
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (Array.isArray(result.downloadUrls)) {
+                    const reportPageUrl = `report.html?urls=${encodeURIComponent(JSON.stringify(result.downloadUrls))}`;
+                    window.open(reportPageUrl, '_blank');
+                } else {
+                    alert('Invalid report URLs');
+                }
+            })
+            .catch(error => {
+                hideLoadingOverlay(); // Hide the loading spinner
+
+                console.error('Error generating report:', error);
+                alert('Failed to generate report.');
+            });
+        }</script></body></html>

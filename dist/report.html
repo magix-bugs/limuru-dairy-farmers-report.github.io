@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Report Downloads</title>
-  <style>
-    body {
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report Downloads</title><style>body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
@@ -98,23 +91,7 @@
       z-index: 9999;
       border-radius: 8px;
       display: none; /* Default to hidden */
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Generated Reports</h1>
-  </header>
-
-  <section class="loading-container">
-    <div class="loading-overlay" id="loading-overlay">
-      <div class="loader"></div>
-    </div>
-    <div id="routesContainer"></div>
-  </section>
- <!-- Webpack will inject scripts here -->
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    }</style><script defer="defer" src="generateReport.js"></script><script defer="defer" src="sorting.js"></script><script defer="defer" src="defaulters.js"></script><script defer="defer" src="evaluation.js"></script><script defer="defer" src="routing.js"></script><script defer="defer" src="dateCategorization.js"></script></head><body><header><h1>Generated Reports</h1></header><section class="loading-container"><div class="loading-overlay" id="loading-overlay"><div class="loader"></div></div><div id="routesContainer"></div></section><script>document.addEventListener('DOMContentLoaded', async () => {
       const routesContainer = document.getElementById('routesContainer');
       const loadingOverlay = document.getElementById('loading-overlay');
 
@@ -211,7 +188,4 @@
         const reportDiv = document.getElementById(`report-${route}`);
         reportDiv.innerHTML = `<p>${message}</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
       }
-    });
-  </script>
-</body>
-</html>
+    });</script></body></html>

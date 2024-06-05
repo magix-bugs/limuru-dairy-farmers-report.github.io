@@ -180,7 +180,7 @@
 
             const formData = new FormData();
             uploadedFiles.forEach(file => formData.append('files', file));
-
+            console.log(`File ${index + 1} appended to FormData.`);
             // Send the uploaded files to the server for report generation
             fetch('https://limurudairydatahub.netlify.app/.netlify/functions/generate-report', {
                 method: 'POST',

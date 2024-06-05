@@ -120,7 +120,7 @@
 
       try {
         showLoadingOverlay();
-        const response = await fetch('/.netlify/functions/upload');
+        const response = await fetch('https://limurudairydatahub.netlify.app/.netlify/functions/generate-report/upload');
         const data = await response.json();
 
         data.routes.forEach(routeData => {
@@ -184,25 +184,25 @@
       }
 
       async function sortFiles(route) {
-        const response = await fetch(`/.netlify/functions/sort/${route}`);
+        const response = await fetch(`https://limurudairydatahub.netlify.app/.netlify/functions/sorting/sort/${route}`);
         const result = await response.json();
         displayReport(route, result.message, result.sortedFiles);
       }
 
       async function categorizeFiles(route) {
-        const response = await fetch(`/.netlify/functions/categorize/${route}`);
+        const response = await fetch(`https://limurudairydatahub.netlify.app/.netlify/functions/dateCategorization/categorize/${route}`);
         const result = await response.json();
         displayReport(route, result.message, result.categorizedFiles);
       }
 
       async function evaluateFiles(route) {
-        const response = await fetch(`/.netlify/functions/evaluate/${route}`);
+        const response = await fetch(`https://limurudairydatahub.netlify.app/.netlify/functions/ealuation/evaluate/${route}`);
         const result = await response.json();
         displayReport(route, result.message, result.evaluations);
       }
 
       async function findDefaulters(route) {
-        const response = await fetch(`/.netlify/functions/defaulters/${route}`);
+        const response = await fetch(`'https://limurudairydatahub.netlify.app/.netlify/functions/fefaulters/defaulters/${route}`);
         const result = await response.json();
         displayReport(route, result.message, result.defaulters);
       }

@@ -12,6 +12,8 @@ const { determineRoutesFromFiles } = require('./routing');
 
 const app = express();
 const upload = multer({ dest: '/tmp' });
+const cors = require('cors');
+ app.use(cors());
 
 // Add CORS middleware
 app.use((req, res, next) => {
@@ -21,7 +23,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post('/upload', upload.array('files'), async (req, res) => {
+app.post('/generate-report', upload.array('files'), async (req, res) => {
   console.log('Files received:', req.files);
   try {
     if (!req.files) {

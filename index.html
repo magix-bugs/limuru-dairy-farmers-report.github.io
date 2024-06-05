@@ -104,7 +104,6 @@
         <input type="file" id="file-input" accept=".csv" multiple>
         <button id="upload-button" onclick="handleFileUpload()">Upload</button>
         <div id="uploaded-files"></div>
-        <div id="file-containers"></div>
         <button id="generate-report-button" onclick="generateReport()" style="display: none;">Generate Report</button>
     </section>
 
@@ -117,6 +116,7 @@
         let uploadedFiles = [];
         const loadingOverlay = document.querySelector('.loading-overlay');
         const generateReportButton = document.getElementById('generate-report-button');
+
         function showLoadingOverlay() {
             loadingOverlay.style.display = 'flex';
         }
@@ -159,8 +159,9 @@
             input.value = '';
 
             hideLoadingOverlay(); // Hide the loading spinner
-        // Show "Generate Report" button if files are uploaded
-        generateReportButton.style.display = uploadedFiles.length > 0 ? 'inline-block' : 'none';
+
+            // Show "Generate Report" button if files are uploaded
+            generateReportButton.style.display = uploadedFiles.length > 0 ? 'inline-block' : 'none';
         }
 
         function removeFile(listItem, file) {
@@ -169,17 +170,25 @@
 
             // Remove file from the uploaded files array
             uploadedFiles = uploadedFiles.filter(f => f !== file);
+
+            // Hide "Generate Report" button if no files are left
+            generateReportButton.style.display = uploadedFiles.length > 0 ? 'inline-block' : 'none';
         }
+
         function generateReport() {
+            showLoadingOverlay(); // Show the loading spinner
+
             const formData = new FormData();
             uploadedFiles.forEach(file => formData.append('files', file));
 
             // Send the uploaded files to the server for report generation
-            fetch('https://limurudairydatahub.netlify.app/.netlify/functions/generate-report/upload', {
+            fetch('https://limurudairydatahub.netlify.app/.netlify/functions/generate-report', {
                 method: 'POST',
                 body: formData
             })
             .then(response => {
+                hideLoadingOverlay(); // Hide the loading spinner
+
                 if (!response.ok) {
                     throw new Error('Failed to generate report.');
                 }
@@ -194,6 +203,8 @@
                 }
             })
             .catch(error => {
+                hideLoadingOverlay(); // Hide the loading spinner
+
                 console.error('Error generating report:', error);
                 alert('Failed to generate report.');
             });

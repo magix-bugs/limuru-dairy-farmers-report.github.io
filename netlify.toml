@@ -5,18 +5,20 @@
   # Set the directory to deploy (the output directory after building your project)
   publish = "dist"
 
+[dev]
+  command = "npm start"
+  port = 8888  
+
 [[redirects]]
-  # Redirect rules can be added here if needed
-  # For example, redirect all requests to the index.html file
+  # Redirect all requests to the index.html file
   from = "/*"
   to = "/index.html"
   status = 200
+
 [[redirects]]
+  # Redirect specific path to report.html
   from = "/index.html"
-  to="/report.html"
-[[redirects]]  
-  from = ".netlify/functions/generate-report"
-  to = ".netlify/functions/generate-report"
+  to = "/report.html"
   status = 200
 
 [functions]
@@ -24,6 +26,5 @@
   directory = "functions"
 
 [build.environment]
-  # Set environment variables that your build process may need
-  # For example, if your application relies on an API key
-  
+  # Example environment variable
+  # API_KEY = "your_api_key_here"

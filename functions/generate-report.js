@@ -1,9 +1,3 @@
-import './routing';
-import './sorting';
-import './dateCategorization';
-import './evaluation';
-import './defaulters';
-
 const express = require('express');
 const serverless = require('serverless-http');
 const multer = require('multer');
@@ -19,9 +13,21 @@ const { determineRoutesFromFiles } = require('./routing');
 const app = express();
 const upload = multer({ dest: '/tmp' });
 
+// Add CORS middleware
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+
 app.post('/upload', upload.array('files'), async (req, res) => {
   console.log('Files received:', req.files);
   try {
+    if (!req.files) {
+      throw new Error('No files uploaded');
+    }
+
     const filePaths = req.files.map(file => file.path);
 
     // Determine routes
@@ -49,26 +55,46 @@ app.post('/upload', upload.array('files'), async (req, res) => {
 
 app.get('/sort/:route', async (req, res) => {
   const route = req.params.route;
-  const sortedFiles = await sortFilesFromMultiplePaths([`${route}`]);
-  res.json({ message: `Files sorted for route ${route}`, sortedFiles });
+  try {
+    const sortedFiles = await sortFilesFromMultiplePaths([`${route}`]);
+    res.json({ message: `Files sorted for route ${route}`, sortedFiles });
+  } catch (error) {
+    console.error('Error sorting files:', error);
+    res.status(500).json({ error: 'Error sorting files' });
+  }
 });
 
 app.get('/categorize/:route', (req, res) => {
   const route = req.params.route;
-  const categorizedFiles = categorizeFilesByPeriod(route, './tmp');
-  res.json({ message: `Files categorized for route ${route}`, categorizedFiles });
+  try {
+    const categorizedFiles = categorizeFilesByPeriod(route, './tmp');
+    res.json({ message: `Files categorized for route ${route}`, categorizedFiles });
+  } catch (error) {
+    console.error('Error categorizing files:', error);
+    res.status(500).json({ error: 'Error categorizing files' });
+  }
 });
 
 app.get('/evaluate/:route', async (req, res) => {
   const route = req.params.route;
-  const evaluations = await evaluateQuantities(route, './tmp');
-  res.json({ message: `Quantities evaluated for route ${route}`, evaluations });
+  try {
+    const evaluations = await evaluateQuantities(route, './tmp');
+    res.json({ message: `Quantities evaluated for route ${route}`, evaluations });
+  } catch (error) {
+    console.error('Error evaluating quantities:', error);
+    res.status(500).json({ error: 'Error evaluating quantities' });
+  }
 });
 
 app.get('/defaulters/:route', async (req, res) => {
   const route = req.params.route;
-  const defaulters = await findDefaultersByPeriod(route, findDefaulters, categorizeFilesByPeriod, sortFilesFromMultiplePaths, './tmp');
-  res.json({ message: `Defaulters identified for route ${route}`, defaulters });
+  try {
+    const defaulters = await findDefaultersByPeriod(route, findDefaulters, categorizeFilesByPeriod, sortFilesFromMultiplePaths, './tmp');
+    res.json({ message: `Defaulters identified for route ${route}`, defaulters });
+  } catch (error) {
+    console.error('Error finding defaulters:', error);
+    res.status(500).json({ error: 'Error finding defaulters' });
+  }
 });
 
 module.exports.handler = serverless(app);
